@@ -1,0 +1,73 @@
+# -----------------------------
+# 1. Customer Churn Prediction
+# -----------------------------
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Load dataset (use Telco dataset or similar)
+df = pd.read_csv("customer_churn.csv")
+
+# Basic preprocessing
+df = df.dropna()
+df = pd.get_dummies(df, drop_first=True)  # encode categoricals
+X = df.drop("Churn", axis=1)
+y = df["Churn"]
+
+# Handle class imbalance
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+
+# Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Train model
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# Evaluate
+y_pred = model.predict(X_test)
+print("\n--- Customer Churn Report ---")
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+# ------------------------------------------
+# 2. Predictive Maintenance for Manufacturing
+# ------------------------------------------
+
+import numpy as np
+from sklearn.ensemble import GradientBoostingClassifier
+
+# Load example synthetic sensor data
+df2 = pd.read_csv("predictive_maintenance.csv")
+
+# Feature engineering (example)
+df2["temp_mean"] = df2[["T1", "T2", "T3"]].mean(axis=1)
+df2["vibration_range"] = df2["Vibration_Max"] - df2["Vibration_Min"]
+
+# Prepare features/labels
+X2 = df2[["temp_mean", "vibration_range", "Pressure", "Humidity"]]
+y2 = df2["Machine_Status"]  # 1 = fail, 0 = normal
+
+# Split
+df2 = df2.dropna()
+X2_train, X2_test, y2_train, y2_test = train_test_split(X2, y2, test_size=0.2, random_state=42)
+
+# Train
+gb_model = GradientBoostingClassifier()
+gb_model.fit(X2_train, y2_train)
+
+# Predict & Evaluate
+y2_pred = gb_model.predict(X2_test)
+print("\n--- Predictive Maintenance Report ---")
+print(confusion_matrix(y2_test, y2_pred))
+print(classification_report(y2_test, y2_pred))
